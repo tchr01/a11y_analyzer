@@ -25,7 +25,7 @@ A comprehensive accessibility audit tool for UX designers that generates detaile
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd a11y-audit-pro
+   cd a11y_analyzer
    ```
 
 2. **Install dependencies**
@@ -218,7 +218,7 @@ npm start
 
 ### Project Structure
 ```
-a11y-audit-pro/
+a11y_analyzer/
 ├── index.html          # Main application interface
 ├── styles.css          # Modern design system styles
 ├── script.js           # Client-side logic and export functions
