@@ -1,12 +1,12 @@
 # A11y Audit Pro
 
-A comprehensive accessibility audit tool for UX designers that generates detailed accessibility reports with WCAG compliance analysis, triage plans, and product requirements. Features real axe-core scanning, dynamic PRD generation, and rich text export capabilities.
+A comprehensive accessibility audit tool for UX designers that generates detailed accessibility reports with WCAG compliance analysis, triage plans, and AI-powered product requirements. Features real axe-core scanning, Claude AI integration, and rich text export capabilities.
 
 ## ✨ Features
 
 - **Real Accessibility Scanning**: Uses axe-core to perform actual accessibility analysis on live websites
 - **WCAG Compliance Assessment**: Evaluates compliance with WCAG A, AA, and AAA standards
-- **Dynamic PRD Generation**: Creates product requirements based on actual scan results
+- **AI-Powered PRD Generation**: Uses Claude AI to create specific, actionable product requirements based on actual scan results
 - **Rich Text Export**: Copy formatted content directly to Google Slides, PowerPoint, Jira, etc.
 - **Executive Summaries**: Business-focused reports with key findings and recommendations
 - **Detailed Triage Plans**: Prioritizes issues by severity and impact with timelines
@@ -18,6 +18,7 @@ A comprehensive accessibility audit tool for UX designers that generates detaile
 ### Prerequisites
 - Node.js (v14 or higher)
 - npm or yarn
+- Anthropic API key (for AI-powered PRD generation)
 
 ### Installation
 
@@ -32,12 +33,20 @@ A comprehensive accessibility audit tool for UX designers that generates detaile
    npm install
    ```
 
-3. **Start the server**
+3. **Set up Claude API key**
+   - Get your API key from [Anthropic Console](https://console.anthropic.com)
+   - Set the environment variable:
+   ```bash
+   export ANTHROPIC_API_KEY=your_api_key_here
+   ```
+   - Or edit `proxy-server.js` and replace `'your-api-key-here'` with your actual API key
+
+4. **Start the server**
    ```bash
    npm start
    ```
 
-4. **Open the app**
+5. **Open the app**
    Navigate to `http://localhost:3000` in your browser
 
 ### Important Notes
@@ -82,7 +91,8 @@ Each section can be exported with rich formatting to:
   "express": "^4.18.2",
   "cors": "^2.8.5", 
   "puppeteer": "^21.5.0",
-  "axe-core": "^4.8.2"
+  "axe-core": "^4.8.2",
+  "@anthropic-ai/sdk": "^0.56.0"
 }
 ```
 
@@ -116,11 +126,12 @@ Each section can be exported with rich formatting to:
 - Cultural sensitivity guidelines
 - Situational accessibility factors
 
-### PRD Requirements
-- **Dynamic generation** based on actual scan results
+### PRD Requirements (AI-Powered)
+- **Claude AI generation** based on actual scan results and issue patterns
 - Functional, technical, testing, and compliance requirements
-- Business justification and user impact
-- Implementation guidance with specific elements
+- Business justification and user impact analysis
+- Implementation guidance with specific affected elements
+- Prioritization based on WCAG compliance levels and user impact
 
 ## 🔧 Development
 

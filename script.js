@@ -102,7 +102,7 @@ class AccessibilityAuditor {
             const triagePlan = this.generateTriagePlan(issues);
             const executiveSummary = this.generateExecutiveSummary(issues, wcagCompliance);
             const culturalConsiderations = this.generateCulturalConsiderations();
-            const prdRequirements = this.generatePRDRequirements(issues);
+            const prdRequirements = await this.generatePRDRequirementsWithAI(issues, wcagCompliance, url);
 
             return {
                 url,
@@ -341,249 +341,80 @@ class AccessibilityAuditor {
         };
     }
 
-    generatePRDRequirements(issues) {
-        // Analyze actual issues to generate targeted requirements
-        const issueTypes = this.categorizeIssues(issues);
-        const requirements = {
-            functional: [],
-            technical: [],
-            testing: [],
-            compliance: []
-        };
-
-        // Generate functional requirements based on detected issues
-        if (issueTypes.keyboardNavigation > 0) {
-            requirements.functional.push({
-                requirement: `Fix keyboard navigation issues (${issueTypes.keyboardNavigation} violations found)`,
-                benefit: 'Enables users who cannot use a mouse to navigate and interact with all functionality',
-                userImpact: 'Expands user base to include motor-impaired users and power users who prefer keyboard navigation',
-                implementation: `Address specific keyboard issues in: ${this.getElementsForCategory(issues, 'keyboard').join(', ')}`,
-                priority: 'Critical',
-                affectedElements: issueTypes.keyboardNavigation
+    async generatePRDRequirementsWithAI(issues, wcagCompliance, url) {
+        try {
+            // Call the new AI-powered PRD requirements endpoint
+            const response = await fetch('/generate-prd-requirements', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    issues, 
+                    wcagCompliance, 
+                    url 
+                })
             });
-        }
 
-        if (issueTypes.colorContrast > 0) {
-            requirements.functional.push({
-                requirement: `Improve color contrast ratios (${issueTypes.colorContrast} violations found)`,
-                benefit: 'Makes content readable for users with visual impairments, color blindness, or viewing in bright conditions',
-                userImpact: 'Improves readability for 8% of men and 0.5% of women who have color vision deficiencies',
-                implementation: `Fix contrast issues in: ${this.getElementsForCategory(issues, 'color-contrast').join(', ')}`,
-                priority: 'High',
-                affectedElements: issueTypes.colorContrast
-            });
-        }
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-        if (issueTypes.missingAltText > 0) {
-            requirements.functional.push({
-                requirement: `Add alternative text to images (${issueTypes.missingAltText} violations found)`,
-                benefit: 'Allows screen reader users to understand visual content and participate fully in the experience',
-                userImpact: 'Makes content accessible to 253 million people worldwide who are visually impaired',
-                implementation: `Add descriptive alt text to: ${this.getElementsForCategory(issues, 'image-alt').join(', ')}`,
-                priority: 'Critical',
-                affectedElements: issueTypes.missingAltText
-            });
-        }
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to generate PRD requirements');
+            }
 
-        if (issueTypes.formLabels > 0) {
-            requirements.functional.push({
-                requirement: `Fix form labeling issues (${issueTypes.formLabels} violations found)`,
-                benefit: 'Reduces user frustration and abandonment by making forms easy to understand and complete',
-                userImpact: 'Improves conversion rates and reduces support requests for all users',
-                implementation: `Add proper labels to: ${this.getElementsForCategory(issues, 'label').join(', ')}`,
-                priority: 'High',
-                affectedElements: issueTypes.formLabels
-            });
+            return data.prdRequirements;
+        } catch (error) {
+            console.error('Error generating AI PRD requirements:', error);
+            // Fallback to a basic implementation if AI fails
+            return this.generateFallbackPRDRequirements(issues, wcagCompliance);
         }
+    }
 
-        if (issueTypes.focusIndicators > 0) {
-            requirements.functional.push({
-                requirement: `Add visible focus indicators (${issueTypes.focusIndicators} violations found)`,
-                benefit: 'Shows keyboard users exactly where they are in the interface at all times',
-                userImpact: 'Prevents users from getting lost in complex interfaces and enables confident navigation',
-                implementation: `Add focus indicators to: ${this.getElementsForCategory(issues, 'focus').join(', ')}`,
-                priority: 'Medium',
-                affectedElements: issueTypes.focusIndicators
-            });
-        }
-
-        // Generate technical requirements based on detected issues
-        if (issueTypes.headingStructure > 0) {
-            requirements.technical.push({
-                requirement: `Fix heading hierarchy issues (${issueTypes.headingStructure} violations found)`,
-                benefit: 'Creates a logical content outline that users can navigate efficiently',
-                userImpact: 'Allows screen reader users to understand content structure and jump between sections',
-                implementation: `Restructure headings in: ${this.getElementsForCategory(issues, 'heading').join(', ')}`,
-                priority: 'Medium',
-                affectedElements: issueTypes.headingStructure
-            });
-        }
-
-        if (issueTypes.ariaIssues > 0) {
-            requirements.technical.push({
-                requirement: `Fix ARIA implementation issues (${issueTypes.ariaIssues} violations found)`,
-                benefit: 'Provides context and meaning for complex interactive components',
-                userImpact: 'Makes custom UI components understandable to assistive technology users',
-                implementation: `Fix ARIA issues in: ${this.getElementsForCategory(issues, 'aria').join(', ')}`,
-                priority: 'High',
-                affectedElements: issueTypes.ariaIssues
-            });
-        }
-
-        if (issueTypes.landmarks > 0) {
-            requirements.technical.push({
-                requirement: `Add semantic landmarks (${issueTypes.landmarks} violations found)`,
-                benefit: 'Creates a logical document structure that assistive technologies can navigate efficiently',
-                userImpact: 'Enables screen reader users to quickly jump to relevant sections and understand page structure',
-                implementation: `Add landmarks to: ${this.getElementsForCategory(issues, 'landmark').join(', ')}`,
-                priority: 'Medium',
-                affectedElements: issueTypes.landmarks
-            });
-        }
-
-        // Generate testing requirements based on issue severity
+    generateFallbackPRDRequirements(issues, wcagCompliance) {
+        // Fallback requirements if AI generation fails
         const criticalIssues = issues.filter(i => i.severity === 'critical').length;
         const totalIssues = issues.length;
-
-        if (criticalIssues > 0) {
-            requirements.testing.push({
-                requirement: `Implement automated accessibility testing (${criticalIssues} critical issues detected)`,
-                benefit: 'Catches accessibility issues early in development, reducing remediation costs',
-                userImpact: 'Ensures consistent accessibility quality without manual oversight',
-                implementation: `Set up axe-core testing to catch issues like those found in this audit`,
+        
+        return {
+            functional: [{
+                requirement: `Address ${criticalIssues} critical accessibility issues`,
+                benefit: 'Improves user experience for users with disabilities',
+                userImpact: 'Makes the application accessible to a broader user base',
+                implementation: 'Fix critical accessibility violations identified in the audit',
                 priority: 'Critical',
                 affectedElements: criticalIssues
-            });
-        }
-
-        if (totalIssues > 5) {
-            requirements.testing.push({
-                requirement: `Establish manual testing protocols (${totalIssues} total issues found)`,
-                benefit: 'Validates that automated tools cannot detect - real user experience quality',
-                userImpact: 'Ensures the interface actually works well for assistive technology users',
-                implementation: `Focus testing on areas with highest violation density: ${this.getTopProblemAreas(issues)}`,
+            }],
+            technical: [{
+                requirement: `Implement accessibility standards compliance`,
+                benefit: 'Ensures technical accessibility requirements are met',
+                userImpact: 'Provides reliable assistive technology support',
+                implementation: 'Follow WCAG 2.1 AA guidelines for technical implementation',
                 priority: 'High',
                 affectedElements: totalIssues
-            });
-        }
-
-        // Generate compliance requirements based on violation patterns
-        const wcagLevels = this.getWCAGLevelBreakdown(issues);
-        
-        requirements.compliance.push({
-            requirement: `Achieve WCAG 2.1 AA compliance (${wcagLevels.A + wcagLevels.AA} violations currently failing)`,
-            benefit: 'Meets international accessibility standards and legal requirements',
-            userImpact: 'Ensures broad accessibility coverage and reduces legal compliance risk',
-            implementation: `Prioritize fixing ${wcagLevels.A} Level A violations and ${wcagLevels.AA} Level AA violations`,
-            priority: 'Critical',
-            affectedElements: wcagLevels.A + wcagLevels.AA
-        });
-
-        if (totalIssues > 10) {
-            requirements.compliance.push({
-                requirement: `Establish accessibility governance process (${totalIssues} issues indicate systemic problems)`,
-                benefit: 'Maintains accessibility quality as the product evolves',
-                userImpact: 'Ensures long-term usability and prevents regression of accessibility features',
-                implementation: `Create accessibility checklist, training, and regular audit schedule`,
-                priority: 'High',
+            }],
+            testing: [{
+                requirement: `Establish accessibility testing protocols`,
+                benefit: 'Prevents regression of accessibility features',
+                userImpact: 'Maintains consistent accessibility quality',
+                implementation: 'Set up automated and manual accessibility testing',
+                priority: 'Medium',
                 affectedElements: totalIssues
-            });
-        }
-
-        return requirements;
-    }
-
-    categorizeIssues(issues) {
-        const categories = {
-            keyboardNavigation: 0,
-            colorContrast: 0,
-            missingAltText: 0,
-            formLabels: 0,
-            focusIndicators: 0,
-            headingStructure: 0,
-            ariaIssues: 0,
-            landmarks: 0
+            }],
+            compliance: [{
+                requirement: `Achieve WCAG 2.1 AA compliance`,
+                benefit: 'Meets international accessibility standards',
+                userImpact: 'Ensures broad accessibility coverage and legal compliance',
+                implementation: 'Address all WCAG violations identified in the audit',
+                priority: 'Critical',
+                affectedElements: wcagCompliance.levelA.total + wcagCompliance.levelAA.total
+            }]
         };
-
-        issues.forEach(issue => {
-            if (issue.id.includes('keyboard') || issue.id.includes('tabindex') || issue.id.includes('focus')) {
-                categories.keyboardNavigation++;
-            }
-            if (issue.id.includes('color-contrast')) {
-                categories.colorContrast++;
-            }
-            if (issue.id.includes('image-alt') || issue.id.includes('alt-text')) {
-                categories.missingAltText++;
-            }
-            if (issue.id.includes('label') || issue.id.includes('form')) {
-                categories.formLabels++;
-            }
-            if (issue.id.includes('focus-order') || issue.id.includes('focus-visible')) {
-                categories.focusIndicators++;
-            }
-            if (issue.id.includes('heading') || issue.id.includes('h1') || issue.id.includes('h2')) {
-                categories.headingStructure++;
-            }
-            if (issue.id.includes('aria') || issue.id.includes('role')) {
-                categories.ariaIssues++;
-            }
-            if (issue.id.includes('landmark') || issue.id.includes('region')) {
-                categories.landmarks++;
-            }
-        });
-
-        return categories;
     }
 
-    getElementsForCategory(issues, category) {
-        const categoryKeywords = {
-            'keyboard': ['keyboard', 'tabindex', 'focus'],
-            'color-contrast': ['color-contrast'],
-            'image-alt': ['image-alt', 'alt-text'],
-            'label': ['label', 'form'],
-            'focus': ['focus-order', 'focus-visible'],
-            'heading': ['heading', 'h1', 'h2'],
-            'aria': ['aria', 'role'],
-            'landmark': ['landmark', 'region']
-        };
-
-        const keywords = categoryKeywords[category] || [];
-        const relevantIssues = issues.filter(issue => 
-            keywords.some(keyword => issue.id.includes(keyword))
-        );
-
-        return relevantIssues.slice(0, 3).map(issue => 
-            issue.elements.length > 0 ? issue.elements[0] : issue.id
-        );
-    }
-
-    getTopProblemAreas(issues) {
-        const areas = {};
-        issues.forEach(issue => {
-            if (issue.elements && issue.elements.length > 0) {
-                issue.elements.forEach(element => {
-                    const selector = element.split(' ')[0]; // Get main selector
-                    areas[selector] = (areas[selector] || 0) + 1;
-                });
-            }
-        });
-
-        return Object.entries(areas)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3)
-            .map(([selector, count]) => `${selector} (${count} issues)`)
-            .join(', ');
-    }
-
-    getWCAGLevelBreakdown(issues) {
-        const breakdown = { A: 0, AA: 0, AAA: 0 };
-        issues.forEach(issue => {
-            if (issue.wcagLevel === 'A') breakdown.A++;
-            else if (issue.wcagLevel === 'AA') breakdown.AA++;
-            else if (issue.wcagLevel === 'AAA') breakdown.AAA++;
-        });
-        return breakdown;
-    }
 
     displayReport(report) {
         this.currentReport = report; // Store for export functions
@@ -849,7 +680,7 @@ class AccessibilityAuditor {
             </div>
 
             <div class="section" id="prd-requirements">
-                <h3 class="section-title">Product Requirements for PRD</h3>
+                <h3 class="section-title">Product Requirements for PRD <span class="ai-badge">🤖 AI Generated</span></h3>
                 
                 <h4>Functional Requirements</h4>
                 <div class="requirements-grid">
