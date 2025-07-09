@@ -16,7 +16,7 @@ A comprehensive accessibility audit tool for UX designers that generates detaile
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm or yarn
 - Anthropic API key (for AI-powered PRD generation)
 
@@ -33,26 +33,69 @@ A comprehensive accessibility audit tool for UX designers that generates detaile
    npm install
    ```
 
-3. **Set up Claude API key**
-   - Get your API key from [Anthropic Console](https://console.anthropic.com)
-   - Set the environment variable:
+3. **Set up environment variables**
+   - Copy the example environment file:
    ```bash
-   export ANTHROPIC_API_KEY=your_api_key_here
+   cp .env.example .env
    ```
-   - Or edit `proxy-server.js` and replace `'your-api-key-here'` with your actual API key
+   - Get your API key from [Anthropic Console](https://console.anthropic.com)
+   - Edit `.env` and add your API key:
+   ```
+   ANTHROPIC_API_KEY=your_api_key_here
+   ```
 
-4. **Start the server**
+### Development
+
+4. **Start development with Vite (recommended)**
+   ```bash
+   # Start both the API server and Vite dev server
+   npm run dev:full
+   ```
+   - API server runs on `http://localhost:3000`
+   - Vite dev server runs on `http://localhost:5173`
+   - Open `http://localhost:5173` in your browser
+
+   **OR**
+
+   **Start development servers separately**
+   ```bash
+   # Terminal 1: Start the API server
+   npm run dev
+   
+   # Terminal 2: Start the Vite dev server
+   npm run dev:vite
+   ```
+
+   **OR**
+
+   **Legacy development (single server)**
    ```bash
    npm start
    ```
+   - Navigate to `http://localhost:3000` in your browser
 
-5. **Open the app**
-   Navigate to `http://localhost:3000` in your browser
+### Production
+
+5. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+6. **Serve production build**
+   ```bash
+   # Build and serve with preview
+   npm run serve
+   
+   # OR build and serve with production server
+   npm run build
+   NODE_ENV=production npm start
+   ```
 
 ### Important Notes
-- **Don't open the HTML file directly** - you must use the server (`npm start`)
-- The server runs on `http://localhost:3000` by default
-- Make sure the target URL is publicly accessible (no authentication required)
+- **Use Vite dev server for development** - provides hot reloading and better DX
+- **Don't open HTML files directly** - must use a server
+- **API server must be running** - handles accessibility analysis and AI generation
+- **Target URLs must be publicly accessible** - no authentication required
 
 ## 📖 Usage
 
@@ -92,7 +135,9 @@ Each section can be exported with rich formatting to:
   "cors": "^2.8.5", 
   "puppeteer": "^21.5.0",
   "axe-core": "^4.8.2",
-  "@anthropic-ai/sdk": "^0.56.0"
+  "@anthropic-ai/sdk": "^0.56.0",
+  "vite": "^7.0.3",
+  "vite-plugin-node-polyfills": "^0.24.0"
 }
 ```
 
@@ -135,16 +180,40 @@ Each section can be exported with rich formatting to:
 
 ## 🔧 Development
 
-### Running in Development
+### Available Scripts
+
 ```bash
-# Install dependencies
-npm install
+# Development
+npm run dev              # Start API server with nodemon
+npm run dev:vite         # Start Vite dev server
+npm run dev:full         # Start both API server and Vite dev server
 
-# Start the server (with auto-restart)
-npm run dev
+# Production
+npm run build            # Build for production
+npm run preview          # Preview production build
+npm run serve            # Build and serve production
 
-# Or start normally
+# Legacy
+npm start                # Start API server only
+```
+
+### Development Workflow
+
+**With Vite (Recommended):**
+```bash
+# Start both servers
+npm run dev:full
+
+# Access at http://localhost:5173
+# API at http://localhost:3000
+```
+
+**Traditional:**
+```bash
+# Start API server only
 npm start
+
+# Access at http://localhost:3000
 ```
 
 ### Project Structure
@@ -153,8 +222,13 @@ a11y-audit-pro/
 ├── index.html          # Main application interface
 ├── styles.css          # Modern design system styles
 ├── script.js           # Client-side logic and export functions
-├── proxy-server.js     # Backend server with Puppeteer
+├── proxy-server.js     # Backend server with Puppeteer & Claude AI
+├── vite.config.js      # Vite configuration
 ├── package.json        # Dependencies and scripts
+├── .env.example        # Environment variables template
+├── .gitignore          # Git ignore rules
+├── dist/              # Production build output (generated)
+├── public/            # Static assets
 └── README.md          # This file
 ```
 

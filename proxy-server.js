@@ -5,7 +5,8 @@ const path = require('path');
 const { Anthropic } = require('@anthropic-ai/sdk');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Initialize Claude API client
 const anthropic = new Anthropic({
@@ -14,12 +15,25 @@ const anthropic = new Anthropic({
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(__dirname));
 
-// Serve the main HTML file
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Serve static files based on environment
+if (NODE_ENV === 'production') {
+    // In production, serve built files from dist directory
+    app.use(express.static(path.join(__dirname, 'dist')));
+    
+    // Serve the main HTML file from dist
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    });
+} else {
+    // In development, serve files from root (when not using Vite dev server)
+    app.use(express.static(__dirname));
+    
+    // Serve the main HTML file
+    app.get('/', (req, res) => {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    });
+}
 
 // Proxy endpoint to fetch and analyze URLs
 app.post('/analyze', async (req, res) => {
