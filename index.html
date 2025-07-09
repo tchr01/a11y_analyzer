@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A11y Audit Pro - Accessibility Report Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-icon">⚡</span>
+                    <span>Powered by axe-core</span>
+                </div>
+                <h1 class="hero-title">A11y Audit Pro</h1>
+                <p class="hero-subtitle">Generate comprehensive accessibility reports for your prototypes with real WCAG analysis</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <div class="input-card">
+                    <div class="card-header">
+                        <h2>Start Your Audit</h2>
+                        <p>Enter any publicly accessible URL to begin comprehensive accessibility analysis</p>
+                    </div>
+                    <form id="auditForm" class="audit-form">
+                        <div class="form-group">
+                            <label for="urlInput" class="form-label">
+                                <span class="label-icon">🔗</span>
+                                Prototype URL
+                            </label>
+                            <div class="input-wrapper">
+                                <input type="url" id="urlInput" name="url" required 
+                                       placeholder="https://figma.com/proto/xyz... or https://yoursite.com"
+                                       class="form-input">
+                                <div class="input-border"></div>
+                            </div>
+                        </div>
+                        <button type="submit" id="generateBtn" class="cta-button">
+                            <span class="button-icon">🚀</span>
+                            <span>Generate Report</span>
+                            <div class="button-shine"></div>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="loading-section" id="loadingSection" style="display: none;">
+                <div class="loading-card">
+                    <div class="loading-animation">
+                        <div class="loading-rings">
+                            <div class="ring ring-1"></div>
+                            <div class="ring ring-2"></div>
+                            <div class="ring ring-3"></div>
+                        </div>
+                        <div class="loading-icon">🔍</div>
+                    </div>
+                    <h3>Analyzing Accessibility</h3>
+                    <p>Running comprehensive WCAG analysis on your prototype...</p>
+                    <div class="progress-steps">
+                        <div class="step step-active">Fetching page</div>
+                        <div class="step">Running axe-core</div>
+                        <div class="step">Generating report</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="report-section" id="reportSection" style="display: none;">
+                <div class="report-content" id="reportContent">
+                    <!-- Report will be generated here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/axe-core@4.8.2/axe.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="script.js"></script>
+</body>
+</html>
